@@ -1,0 +1,127 @@
+<html>
+    <head>
+        <link href="bookshelf.css" rel="stylesheet" type="text/css">
+        <script src="jquery-3.4.1.min.js"></script>
+        <script type="text/javascript" src="bookshelf.js"></script>
+        <!-- <script src="https://kit.fontawesome.com/f13117aac7.js" crossorigin="anonymous"></script> -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/fontawesome.min.css" integrity="sha384-jLKHWM3JRmfMU0A5x5AkjWkw/EYfGUAGagvnfryNV3F9VqM98XiIH7VBGVoxVSc7" crossorigin="anonymous">
+    </head>
+
+
+    <body>
+        <div class="background">
+            <img class="bookshelf" class="bookshelf" src="images/bookshelf.png" alt="bookshelf"></img>
+        
+            <div class="add-book">
+                <div class="to-read">
+
+                    <p>to read</p>
+                </div>
+
+                <label class="plus">
+                    <!-- <input type="radio" name="reason" value="work" checked> -->
+                    <i class="fa fa-plus" aria-hidden="true"></i>
+                </label>
+            </div>
+
+            <div class="display-to-read">
+
+            </div>
+
+
+            
+            <div class="curr-read">
+                <p>currently reading</p>
+
+            </div>
+
+            <div class="display-curr-read">
+
+            </div>
+
+            <div class="fin-read">
+                <p>finished reading</p>
+
+            </div>
+
+            <div class="display-fin-read">
+
+            </div>
+
+        </div>
+
+        <div class="show-book"> 
+            <form>
+                <input 
+                    type="text"
+                    name="title" 
+                    placeholder="title"
+                    class="title"
+                >
+                <br>
+                <input 
+                    type="text"
+                    name="author" 
+                    placeholder="author"
+                    class="author"
+                >
+                <div class="rate">
+                    <input type="radio" id="star5" name="rate" value="5" />
+                    <label for="star5" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
+
+                    <input type="radio" id="star4" name="rate" value="4" />
+                    <label for="star4" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
+
+                    <input type="radio" id="star3" name="rate" value="3" />
+                    <label for="star3" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
+
+                    <input type="radio" id="star2" name="rate" value="2" />
+                    <label for="star2" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
+
+                    <input type="radio" id="star1" name="rate" value="1" />
+                    <label for="star1" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
+                </div>
+
+                <div class="done-buttons">
+                    <div class="done">
+                        <button>save</button>
+                    </div>
+    
+                    <div class="delete">
+                        <i class="fa fa-trash" aria-hidden="true" style="font-size: 25px;"></i>
+                    </div>
+                </div>
+
+
+
+            </form>
+
+        </div>
+
+        <div class="goal">
+            <p>books read so far:</p>
+            <!-- <p class="total">total / </p> -->
+            <form>
+                <label for="goal">total /</label>
+                <input 
+                    class="goal-input"
+                    type="text"
+                    name="goal" 
+                    placeholder="goal"
+                >
+            </form>
+
+        </div>
+    
+
+        <!-- <div class="contact-info">
+            <p>contact me here!</p>
+        </div> -->
+
+        
+
+
+    </body>
+
+</html>
