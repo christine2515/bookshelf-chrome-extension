@@ -1,0 +1,209 @@
+/* imports */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display+SC:wght@400;700&family=Special+Elite&display=swap');
+
+:root {
+    --sage: #A1AFA0;
+    --beige: #F7EDD0;
+    --red: #970C10;
+    --brown: #947360;
+    --teal: #7CB7AF;
+    --purple: ##D3BBDD;
+}
+
+body {
+    background-color: var(--beige);
+    /* background-image: url("./images/bookshelf.png"); */
+    color: var(--beige);
+    font-family: 'Special Elite';
+    font-weight: 400;
+}
+
+.background {
+    position: relative;
+    text-align: center;
+    /* margin-left: 50px; */
+}
+
+.bookshelf {
+    float: right;
+    height: 500px;
+    width: 400px;
+    border-radius: 5px;
+}
+
+.to-read {
+    position: absolute;
+    top: 25px;
+    left: 50px;
+}
+
+p#to-read {
+    float: left;
+    margin-left: 0px;
+}
+
+.plus {
+    position: absolute;
+    top: 35px;
+    right: 35px;
+    color: var(--beige);
+}
+
+.display-to-read {
+    background-color: var(--brown);
+    opacity: .5;
+    position: absolute;
+    top: 55px;
+    left: 50px;
+    width: 300px;
+    height: 100px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.curr-read {
+    position: absolute;
+    top: 180px;
+    left: 50px;
+}
+
+.display-curr-read {
+    background-color: var(--brown);
+    opacity: .5;
+    position: absolute;
+    top: 215px;
+    left: 50px;
+    width: 300px;
+    height: 100px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.fin-read {
+    position: absolute;
+    top: 340px;
+    left: 50px;
+}
+
+.display-fin-read {
+    background-color: var(--brown);
+    opacity: .5;
+    position: absolute;
+    top: 375px;
+    left: 50px;
+    width: 300px;
+    height: 100px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.goal {
+    float: right; 
+    bottom: 15px;
+    right: 15px;
+
+    background-color: var(--sage);
+    /* padding: 10px; */
+    padding-left: 10px;
+    padding-right: 10px;
+    /* padding-bottom: 10px; */
+    border-radius: 10px;
+    margin-top: 10px;
+    margin-right: 50px;
+    margin-left: 10px;
+    /* display: inline-block; */
+    /* direction: rtl; */
+}
+
+input {
+    width: 40px;
+
+    border: none;
+    background-color: transparent;
+    color: var(--beige);
+    font-family: 'Special Elite';
+    font-weight: 400;
+    border-radius: 3px;
+}
+
+.goal-input {
+    display: inline-block;
+}
+
+
+/* FORM CSS (add/edit book) */
+.show-book {
+    display: inline-block;
+    width: 200px;
+    margin-top: 10px;
+    margin-left: 10px;
+}
+
+.title {
+    /* position: absolute; */
+    /* float: left;
+    top: 515px; */
+    margin-top: 3px;
+
+}
+
+.author {
+    /* position: absolute;
+    float: left; */
+    width: 50px;
+    margin-top: 3px;
+    /* top: 530px; */
+}
+
+.rate {
+    position: absolute;
+    float: left;
+    margin-top: 3px;
+    /* bottom: 35px;
+    left: 10px; */
+}
+.rate:not(:checked) > input {
+    position:absolute;
+    top:-9999px;
+}
+.rate:not(:checked) > label {
+    float:right;
+    width:1em;
+    overflow:hidden;
+    white-space:nowrap;
+    cursor:pointer;
+    font-size:30px;
+    color:#ccc;
+}
+
+.rate > input:checked ~ label {
+    color: #ffc700;    
+}
+.rate:not(:checked) > label:hover,
+.rate:not(:checked) > label:hover ~ label {
+    color: #deb217;  
+}
+.rate > input:checked + label:hover,
+.rate > input:checked + label:hover ~ label,
+.rate > input:checked ~ label:hover,
+.rate > input:checked ~ label:hover ~ label,
+.rate > label:hover ~ input:checked ~ label {
+    color: #c59b08;
+} 
+
+.done {
+    color: var(--teal);
+    margin-top: 25px;
+    display: inline-block;
+
+}
+
+.button {
+    color: var(--brown);
+}
+
+.delete {
+    color: var(--brown);
+    display: inline-block;
+}
+
