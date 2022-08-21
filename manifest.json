@@ -3,10 +3,12 @@
     "description": "a mini bookshelf tucked into your favorite browser",
     "version": "1.0",
     "manifest_version": 3,
-    "background": {
-        "service_worker": "bookshelf.js",
-        "type": "module"
-    },
+    "content_scripts": [ 
+        { 
+            "js": [ "jquery-3.6.0.min.js", "background.js" ], 
+            "matches": [ "http://*/*", "https://*/*"] 
+        }
+    ],
     "permissions": ["storage"],
     "action": {
         "default_popup": "bookshelf.html",
@@ -24,4 +26,4 @@
         "48": "/images/icon128.png",
         "128": "/images/icon128.png"
     }
-  }
+}
