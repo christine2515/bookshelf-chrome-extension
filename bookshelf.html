@@ -1,8 +1,8 @@
 <html>
     <head>
+        <script src="jquery-3.6.0.min.js">$=jQuery</script>
         <link href="bookshelf.css" rel="stylesheet" type="text/css">
-        <script src="jquery-3.4.1.min.js"></script>
-        <script type="text/javascript" src="bookshelf.js"></script>
+        <script src="background.js"></script>
         <!-- <script src="https://kit.fontawesome.com/f13117aac7.js" crossorigin="anonymous"></script> -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/fontawesome.min.css" integrity="sha384-jLKHWM3JRmfMU0A5x5AkjWkw/EYfGUAGagvnfryNV3F9VqM98XiIH7VBGVoxVSc7" crossorigin="anonymous">
@@ -20,12 +20,21 @@
                 </div>
 
                 <label class="plus">
-                    <!-- <input type="radio" name="reason" value="work" checked> -->
                     <i class="fa fa-plus" aria-hidden="true"></i>
                 </label>
             </div>
 
             <div class="display-to-read">
+                <table class="display-to-read">
+                    <tr>
+                        <div class="book">
+                            <i class="fa fa-book" style="display: inline-block; margin-left: 5px;"></i>
+                            <p style="display: inline-block;">Station Eleven</p>
+        
+                        </div>
+                    </tr>
+                </table>
+
 
             </div>
 
@@ -37,6 +46,15 @@
             </div>
 
             <div class="display-curr-read">
+                <table class="display-curr-read">
+                    <tr>
+                        <div class="book">
+                            <i class="fa fa-book" style="display: inline-block; margin-left: 5px;"></i>
+                            <p style="display: inline-block;">Station Eleven</p>
+        
+                        </div>
+                    </tr>
+                </table>
 
             </div>
 
@@ -46,19 +64,29 @@
             </div>
 
             <div class="display-fin-read">
+                <table class="display-fin-read">
+                    <tr>
+                        <div class="book">
+                            <i class="fa fa-book" style="display: inline-block; margin-left: 5px;"></i>
+                            <p style="display: inline-block;">Station Eleven</p>
+        
+                        </div>
+                    </tr>
+                </table>
 
             </div>
 
         </div>
 
-        <div class="show-book"> 
-            <form>
+        <div id="show-book" class="show-book"> 
+            <form class="book-form">
                 <input 
                     type="text"
                     name="title" 
                     placeholder="title"
                     class="title"
                 >
+                <!-- placeholder for title and author if editing should be current title and current author! -->
                 <br>
                 <input 
                     type="text"
@@ -88,7 +116,7 @@
                         <button>save</button>
                     </div>
     
-                    <div class="delete">
+                    <div class="delete" id="delete">
                         <i class="fa fa-trash" aria-hidden="true" style="font-size: 25px;"></i>
                     </div>
                 </div>
