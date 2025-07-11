@@ -25,19 +25,19 @@ function start() {
         if (result.tr) {
             to_read = result.tr;
             for (let i = 0; i < to_read.length; i++) {
-                shelveBook(to_read[i]["title"], "to-read");
+                shelveBook(to_read[i]["title"], "to-read", to_read[i]["stars"]);
             }
         }
         if (result.cr) {
             curr_read = result.cr;
             for (let i = 0; i < curr_read.length; i++) {
-                shelveBook(curr_read[i]["title"], "curr-read");
+                shelveBook(curr_read[i]["title"], "curr-read", curr_read[i]["stars"]);
             }
         }
         if (result.fr) {
             fin_read = result.fr;
             for (let i = 0; i < fin_read.length; i++) {
-                shelveBook(fin_read[i]["title"], "fin-read");
+                shelveBook(fin_read[i]["title"], "fin-read", fin_read[i]["stars"]);
             }
         }
         
@@ -74,7 +74,7 @@ function start() {
         if (newBook == true && editingBook === null) {
             // Adding a new book
             to_read.push(book);
-            shelveBook(book["title"], "to-read");
+            shelveBook(book["title"], "to-read", book["stars"]);
             chrome.storage.sync.get(["tr"], function(result) {
                 var currentToRead = result.tr || [];
                 currentToRead.push(book);
@@ -298,7 +298,7 @@ function start() {
             
             if (updated) {
                 // Update the display
-                updateBookDisplay(oldTitle, updatedBook.title);
+                updateBookDisplay(oldTitle, updatedBook.title, updatedBook.stars);
                 
                 // Save to storage
                 chrome.storage.sync.set({
@@ -376,10 +376,18 @@ function start() {
         });
     }
 
-    function updateBookDisplay(oldTitle, newTitle) {
-        $('.book').filter(function() {
+    function updateBookDisplay(oldTitle, newTitle, newStars) {
+        var bookElement = $('.book').filter(function() {
             return $(this).find('.book-title').text().trim() === oldTitle;
-        }).find('.book-title').text(' ' + newTitle);
+        });
+        
+        if (bookElement.length > 0) {
+            bookElement.find('.book-title').text(' ' + newTitle);
+            if (newStars !== undefined) {
+                var starHTML = generateStarHTML(newStars);
+                bookElement.find('.book-stars').html(starHTML);
+            }
+        }
     }
 
     function getShelfFromElement(element) {
@@ -562,10 +570,23 @@ function returnRating(stars) {
 // }
 
 // set book in the bookshelf
-function shelveBook(title, shelf) {
+function shelveBook(title, shelf, stars) {
+    var starHTML = generateStarHTML(stars || 0);
     $(".display-" + shelf + " ul").append(
-        '<li class="book" data-test="book-item" draggable="true"><i class="fa fa-book"></i><span class="book-title"> ' + title + '</span></li>'
+        '<li class="book" data-test="book-item" draggable="true"><i class="fa fa-book"></i><span class="book-title"> ' + title + '</span><span class="book-stars">' + starHTML + '</span></li>'
     );
+}
+
+function generateStarHTML(stars) {
+    var starHTML = '';
+    for (var i = 1; i <= 5; i++) {
+        if (i <= stars) {
+            starHTML += '<i class="fa fa-star book-star filled" aria-hidden="true"></i>';
+        } else {
+            starHTML += '<i class="fa fa-star book-star" aria-hidden="true"></i>';
+        }
+    }
+    return starHTML;
 }
 
 function unshelveBook(title, shelf) {

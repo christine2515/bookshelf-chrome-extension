@@ -86,6 +86,21 @@ ul {
     margin-left: 10px;
 }
 
+.book-stars {
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.book-star {
+    font-size: 12px;
+    color: #ccc;
+    margin-right: 1px;
+}
+
+.book-star.filled {
+    color: #ffc700;
+}
+
 .book {
     cursor: grab;
     transition: all 0.2s ease;
