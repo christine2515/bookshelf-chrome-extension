@@ -25,17 +25,12 @@
             </div>
 
             <div class="display-to-read">
-                <table class="display-to-read">
-                    <tr>
-                        <div class="book">
-                            <i class="fa fa-book" style="display: inline-block; margin-left: 5px;"></i>
-                            <p style="display: inline-block;">Station Eleven</p>
-        
-                        </div>
-                    </tr>
-                </table>
-
-
+                <ul id="to-read">
+                    <!-- <li class="book" data-test="book-item" draggable="true">
+                        <i class="fa fa-book" style="display: inline-block; margin-left: 5px;"></i>
+                        <span class="book-title" style="display: inline-block;">Station Eleven</span>
+                    </li> -->
+                </ul>
             </div>
 
 
@@ -46,16 +41,12 @@
             </div>
 
             <div class="display-curr-read">
-                <table class="display-curr-read">
-                    <tr>
-                        <div class="book">
-                            <i class="fa fa-book" style="display: inline-block; margin-left: 5px;"></i>
-                            <p style="display: inline-block;">Station Eleven</p>
-        
-                        </div>
-                    </tr>
-                </table>
-
+                <ul id="curr-read">
+                    <!-- <li class="book" data-test="book-item" draggable="true">
+                        <i class="fa fa-book" style="display: inline-block; margin-left: 5px;"></i>
+                        <span class="book-title" style="display: inline-block;">Station Eleven</span>
+                    </li> -->
+                </ul>
             </div>
 
             <div class="fin-read">
@@ -64,16 +55,12 @@
             </div>
 
             <div class="display-fin-read">
-                <table class="display-fin-read">
-                    <tr>
-                        <div class="book">
-                            <i class="fa fa-book" style="display: inline-block; margin-left: 5px;"></i>
-                            <p style="display: inline-block;">Station Eleven</p>
-        
-                        </div>
-                    </tr>
-                </table>
-
+                <ul id="fin-read">
+                    <!-- <li class="book" data-test="book-item" draggable="true">
+                        <i class="fa fa-book" style="display: inline-block; margin-left: 5px;"></i>
+                        <span class="book-title" style="display: inline-block;">Station Eleven</span>
+                    </li> -->
+                </ul>
             </div>
 
         </div>
@@ -96,26 +83,23 @@
                 >
                 <div class="rate">
                     <input type="radio" id="star5" name="rate" value="5" />
-                    <label for="star5" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
+                    <label id="5" for="star5" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
 
                     <input type="radio" id="star4" name="rate" value="4" />
-                    <label for="star4" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
+                    <label class="4" for="star4" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
 
                     <input type="radio" id="star3" name="rate" value="3" />
-                    <label for="star3" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
+                    <label id="3" for="star3" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
 
                     <input type="radio" id="star2" name="rate" value="2" />
-                    <label for="star2" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
+                    <label id="2" for="star2" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
 
                     <input type="radio" id="star1" name="rate" value="1" />
-                    <label for="star1" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
+                    <label id="1" for="star1" title="text"><i class="fa fa-star" aria-hidden="true" style="font-size: 15px;"></i></label>
                 </div>
 
                 <div class="done-buttons">
-                    <div class="done">
-                        <button>save</button>
-                    </div>
-    
+                    <div class="done" id="done">save</div>
                     <div class="delete" id="delete">
                         <i class="fa fa-trash" aria-hidden="true" style="font-size: 25px;"></i>
                     </div>
@@ -131,7 +115,8 @@
             <p>books read so far:</p>
             <!-- <p class="total">total / </p> -->
             <form>
-                <label for="goal">total /</label>
+                <p class="num-books">numBooks</p>
+                <label for="goal"> / </label>
                 <input 
                     class="goal-input"
                     type="text"

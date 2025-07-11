@@ -14,10 +14,10 @@
         "default_popup": "bookshelf.html",
         "default_title": "bookshelf",
         "default_icon": {
-            "16": "/images/icon128.png",
-            "32": "/images/icon128.png",
-            "48": "/images/icon128.png",
-            "128": "/images/icon128.png"
+            "16": "/images/book_logo.png",
+            "32": "/images/book_logo.png",
+            "48": "/images/book_logo.png",
+            "128": "/images/book_logo.png"
         }
     },
     "icons": {

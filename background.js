@@ -1,100 +1,428 @@
 // _________ VARIABLES _________
 // var title, author, rating, shelf;
+var old_title;
 var title;
 var goal;
-var locked, editing; //for later...
-var books = {}
+
 var tr_rows = 0;
 var cr_rows = 0;
 var fr_rows = 0;
+var addBook = false;
+var newBook = false;
+var numBooks = 0;
+var editingBook = null; // Track which book is being edited
 
 // _________ ON OPEN _________
 document.addEventListener('DOMContentLoaded', start);
 
-// data storage setup
-function setStorage() {
-    chrome.storage.local.set({
-        'books': {},
-        'set': 1,
-    })
-}
-
 function start() {
-    // $('.show-book').css('visibility','hidden'); 
+    var to_read = [];
+    var curr_read = [];
+    var fin_read = [];
+
+    // Load saved books from storage
+    chrome.storage.sync.get(["tr", "cr", "fr"], function(result) {
+        if (result.tr) {
+            to_read = result.tr;
+            for (let i = 0; i < to_read.length; i++) {
+                shelveBook(to_read[i]["title"], "to-read");
+            }
+        }
+        if (result.cr) {
+            curr_read = result.cr;
+            for (let i = 0; i < curr_read.length; i++) {
+                shelveBook(curr_read[i]["title"], "curr-read");
+            }
+        }
+        if (result.fr) {
+            fin_read = result.fr;
+            for (let i = 0; i < fin_read.length; i++) {
+                shelveBook(fin_read[i]["title"], "fin-read");
+            }
+        }
+    });
+
     $(".show-book").hide();
-    setStorage();
 
-
-// $(document).on('ready', function(){
-//     $('.show-book').css('visibility','visible'); 
-// });
-
-
-// _________ ONCLICK _________
+    // _________ ONCLICK _________
 
     // add button (plus)
     $(".plus").on('click', function() {
         $("#show-book").show();
+        addBook = true;
+        newBook = true;
+        editingBook = null;
+        resetForm();
     })
 
     // save button
-    $(".done").on('click', function() {
-        editing = false;
-        var title = $(".title").val();
-        var author = $(".author").val();
-        console.log(title);
-        // var rating = 
-        // FIGURE OUT RATING
-        var rating = getRating($(".rating").val());
-        saveBook(title, author, rating);
+    $("#done").on('click', function() {
+        book = {};
+        book["title"] = $(".title").val();
+        book["author"] = $(".author").val();
+        book["stars"] = getRating();
+
+        if (newBook == true && editingBook === null) {
+            // Adding a new book
+            to_read.push(book);
+            shelveBook(book["title"], "to-read");
+            chrome.storage.sync.get(["tr"], function(result) {
+                var currentToRead = result.tr || [];
+                currentToRead.push(book);
+                chrome.storage.sync.set({ tr: currentToRead }).then(() => {
+                    console.log("Book added to to-read");
+                });
+            });
+        } else if (editingBook !== null) {
+            // Editing an existing book
+            updateBookInStorage(editingBook, book);
+        }
+
+        resetForm();
         $(".show-book").hide();
-        shelveBook();
+        addBook = false;
+        newBook = false;
+        editingBook = null;
     });
 
     // delete button (trash icon)
     $("#delete").on('click', function() {
+        if (editingBook !== null) {
+            // Delete the book being edited
+            deleteBookFromStorage(editingBook);
+        }
         $(".show-book").hide();
-        // also remove the book from view of bookshelf
-        var target = $(".title").val();
-        deleteBook(target);
+        resetForm();
+        addBook = false;
+        newBook = false;
+        editingBook = null;
     });
-
-    // change goal
 
     // click book to edit
-    $("div.book").on('click', function(e) {
-        var target = e.currentTarget;
-        showBook(target);
+    $(document).on('click', ".book", function(e) {
+        addBook = true;
+        newBook = false;
+        var bookTitle = $(this).find('.book-title').text().trim();
+        editingBook = bookTitle;
+        loadBookForEditing(bookTitle);
         $(".show-book").show();
     });
-
 
     // _________ HOVER _________
 
     // hover over book
-    $("div.book").on('mouseover', function(e) {
-        var target = e.currentTarget;
-        showBook(target);
-        $(".show-book").show();
-        // don't show save and delete buttons
-    }) 
+    $(document).on('mouseover', ".book", function() {
+        if(addBook == false) {
+            title = $(".book-title");
+            showBook(title);
+            $(".show-book").show();
+        }
+    });
 
-    $("div.book").on('mouseleave', function() {
-        $('.show-book').hide();
-    })
+    $(document).on('mouseleave', ".book", function() {
+        if(addBook == false) {
+            $('.show-book').hide();
+        }
+    });
 
-    // chrome.storage.local.get('books', function(result) {
-    //     books = result.books;
-    //     $('.books').val(books);
-    // });
+    // _________ DRAG AND DROP _________
+
+    // Make all book items draggable
+    $(document).on('dragstart', '.book', function(e) {
+        e.originalEvent.dataTransfer.setData('text/plain', $(this).find('.book-title').text().trim());
+        $(this).addClass('dragging');
+    });
+
+    $(document).on('dragend', '.book', function(e) {
+        $(this).removeClass('dragging');
+    });
+
+    // Make all display areas droppable
+    $('.display-to-read, .display-curr-read, .display-fin-read').on('dragover', function(e) {
+        e.preventDefault();
+        e.originalEvent.dataTransfer.dropEffect = 'move';
+        $(this).addClass('drag-over');
+    });
+
+    $('.display-to-read, .display-curr-read, .display-fin-read').on('dragleave', function(e) {
+        $(this).removeClass('drag-over');
+    });
+
+    $('.display-to-read, .display-curr-read, .display-fin-read').on('drop', function(e) {
+        e.preventDefault();
+        $(this).removeClass('drag-over');
+        
+        var bookTitle = e.originalEvent.dataTransfer.getData('text/plain');
+        var draggedElement = $('.book').filter(function() {
+            return $(this).find('.book-title').text().trim() === bookTitle;
+        });
+        
+        if (draggedElement.length === 0) return;
+        
+        var targetShelf = getShelfFromElement($(this));
+        var sourceShelf = getShelfFromElement(draggedElement.parent());
+        
+        if (targetShelf !== sourceShelf) {
+            // Move the book element
+            $(this).find('ul').append(draggedElement);
+            
+            // Update storage
+            moveBookInStorage(bookTitle, sourceShelf, targetShelf);
+        }
+    });
+
+    // _________ FUNCTIONS _________
+
+    function loadBookForEditing(bookTitle) {
+        chrome.storage.sync.get(["tr", "cr", "fr"], function(result) {
+            var to_read = result.tr || [];
+            var curr_read = result.cr || [];
+            var fin_read = result.fr || [];
+            
+            // Search for the book in all shelves
+            var book = null;
+            for (var i = 0; i < to_read.length; i++) {
+                if (to_read[i].title === bookTitle) {
+                    book = to_read[i];
+                    break;
+                }
+            }
+            if (!book) {
+                for (var i = 0; i < curr_read.length; i++) {
+                    if (curr_read[i].title === bookTitle) {
+                        book = curr_read[i];
+                        break;
+                    }
+                }
+            }
+            if (!book) {
+                for (var i = 0; i < fin_read.length; i++) {
+                    if (fin_read[i].title === bookTitle) {
+                        book = fin_read[i];
+                        break;
+                    }
+                }
+            }
+            
+            if (book) {
+                // Populate the form with book data
+                $(".title").val(book.title);
+                $(".author").val(book.author);
+                returnRating(book.stars || 0);
+            }
+        });
+    }
+
+    function updateBookInStorage(oldTitle, updatedBook) {
+        chrome.storage.sync.get(["tr", "cr", "fr"], function(result) {
+            var to_read = result.tr || [];
+            var curr_read = result.cr || [];
+            var fin_read = result.fr || [];
+            
+            // Find and update the book in the appropriate shelf
+            var updated = false;
+            
+            // Check to-read shelf
+            for (var i = 0; i < to_read.length; i++) {
+                if (to_read[i].title === oldTitle) {
+                    to_read[i] = updatedBook;
+                    updated = true;
+                    break;
+                }
+            }
+            
+            // Check currently-reading shelf
+            if (!updated) {
+                for (var i = 0; i < curr_read.length; i++) {
+                    if (curr_read[i].title === oldTitle) {
+                        curr_read[i] = updatedBook;
+                        updated = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Check finished-reading shelf
+            if (!updated) {
+                for (var i = 0; i < fin_read.length; i++) {
+                    if (fin_read[i].title === oldTitle) {
+                        fin_read[i] = updatedBook;
+                        updated = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (updated) {
+                // Update the display
+                updateBookDisplay(oldTitle, updatedBook.title);
+                
+                // Save to storage
+                chrome.storage.sync.set({
+                    tr: to_read,
+                    cr: curr_read,
+                    fr: fin_read
+                }, function() {
+                    console.log('Book updated: ' + oldTitle + ' -> ' + updatedBook.title);
+                });
+            }
+        });
+    }
+
+    function deleteBookFromStorage(bookTitle) {
+        chrome.storage.sync.get(["tr", "cr", "fr"], function(result) {
+            var to_read = result.tr || [];
+            var curr_read = result.cr || [];
+            var fin_read = result.fr || [];
+            
+            var deleted = false;
+            
+            // Remove from to-read shelf
+            for (var i = 0; i < to_read.length; i++) {
+                if (to_read[i].title === bookTitle) {
+                    to_read.splice(i, 1);
+                    deleted = true;
+                    break;
+                }
+            }
+            
+            // Remove from currently-reading shelf
+            if (!deleted) {
+                for (var i = 0; i < curr_read.length; i++) {
+                    if (curr_read[i].title === bookTitle) {
+                        curr_read.splice(i, 1);
+                        deleted = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Remove from finished-reading shelf
+            if (!deleted) {
+                for (var i = 0; i < fin_read.length; i++) {
+                    if (fin_read[i].title === bookTitle) {
+                        fin_read.splice(i, 1);
+                        deleted = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (deleted) {
+                // Remove from display
+                $('.book').filter(function() {
+                    return $(this).find('.book-title').text().trim() === bookTitle;
+                }).remove();
+                
+                // Save to storage
+                chrome.storage.sync.set({
+                    tr: to_read,
+                    cr: curr_read,
+                    fr: fin_read
+                }, function() {
+                    console.log('Book deleted: ' + bookTitle);
+                });
+            }
+        });
+    }
+
+    function updateBookDisplay(oldTitle, newTitle) {
+        $('.book').filter(function() {
+            return $(this).find('.book-title').text().trim() === oldTitle;
+        }).find('.book-title').text(' ' + newTitle);
+    }
+
+    function getShelfFromElement(element) {
+        if (element.hasClass('display-to-read') || element.find('.display-to-read').length > 0) {
+            return 'to-read';
+        } else if (element.hasClass('display-curr-read') || element.find('.display-curr-read').length > 0) {
+            return 'curr-read';
+        } else if (element.hasClass('display-fin-read') || element.find('.display-fin-read').length > 0) {
+            return 'fin-read';
+        }
+        return null;
+    }
+
+    function moveBookInStorage(bookTitle, fromShelf, toShelf) {
+        chrome.storage.sync.get(["tr", "cr", "fr"], function(result) {
+            var to_read = result.tr || [];
+            var curr_read = result.cr || [];
+            var fin_read = result.fr || [];
+            
+            var book = null;
+            var sourceArray = null;
+            var targetArray = null;
+            
+            // Find the book in the source array
+            if (fromShelf === 'to-read') {
+                sourceArray = to_read;
+            } else if (fromShelf === 'curr-read') {
+                sourceArray = curr_read;
+            } else if (fromShelf === 'fin-read') {
+                sourceArray = fin_read;
+            }
+            
+            // Find and remove book from source
+            for (var i = 0; i < sourceArray.length; i++) {
+                if (sourceArray[i].title === bookTitle) {
+                    book = sourceArray.splice(i, 1)[0];
+                    break;
+                }
+            }
+            
+            if (book) {
+                // Add to target array
+                if (toShelf === 'to-read') {
+                    targetArray = to_read;
+                } else if (toShelf === 'curr-read') {
+                    targetArray = curr_read;
+                } else if (toShelf === 'fin-read') {
+                    targetArray = fin_read;
+                }
+                
+                targetArray.push(book);
+                
+                // Update storage
+                chrome.storage.sync.set({
+                    tr: to_read,
+                    cr: curr_read,
+                    fr: fin_read
+                }, function() {
+                    console.log('Book moved from ' + fromShelf + ' to ' + toShelf);
+                });
+            }
+        });
+    }
 };
 
-// _________ DRAG _________
-
-// drag book to change status (aka shelf)
-
-
 // _________ FUNCTIONS _________
+
+/**
+ * storage.sync:
+ * to-read: [list of to-read books]
+ * curr-read: [list of books reading]
+ * fin-read: [list of read books]
+ * 
+ * book: {
+ *  title: "sea of tranquility"
+ *  author: "emily st john mandel"
+ *  stars: 5
+ * }
+ */
+
+function resetForm() {
+    $(".title").val("");
+    $(".author").val("");
+
+    $("#star5").prop('checked', false);
+    $("#star4").prop('checked', false);
+    $("#star3").prop('checked', false);
+    $("#star2").prop('checked', false);
+    $("#star1").prop('checked', false);
+    
+    // Reset star colors
+    $("#5, #4, #3, #2, #1").css("color", "");
+}
 
 // create book - not sure if this is necessary...
 function createBook(title, new_a, new_r) {
@@ -109,49 +437,10 @@ function deleteBook(title) {
     if(books[title]) {
         delete books[title];
     } else {
-        console.log("book not found :(");
+        alert("book not found :(");
     }
     // figure out shelf
     unshelveBook(title, shelf);
-
-}
-
-
-
-// edit book helper functions
-function setTitle(title, t) {
-    books[t] = books[title];
-    deleteBook(title);
-}
-
-function setAuthor(title, a) {
-    books[title]["author"] = a;
-}
-
-function setRating(title, r) {
-    books[title]["rating"] = r;
-}
-
-function setShelf(title, s) {
-    unshelveBook(title, shelf);
-    shelveBook(title, shelf);
-    chrome.storage.local.set({
-        'books': books
-        // don't want to save shelf in savebook bc can't save shelf manually...yet
-    })
-
-}
-
-// save book
-function saveBook(title, new_t, new_a, new_r) {
-    setTitle(title, new_t);
-    setAuthor(new_t, new_a);
-    setRating(new_t, new_r);
-    shelveBook();
-    // setStatus(new_t, new_s);
-    chrome.storage.sync.set({"test": "test"}, function() {
-        alert('Succes');
-    });
 }
 
 // calculate num books finished
@@ -166,62 +455,61 @@ function getNumBooksFinished() {
 }
 
 // get rating from stars...
+function getRating() {
+    numStars = 0;
+    if($("#5").css("color") == "rgb(255, 199, 0)") {
+        numStars = 5;
+    } else if ($("#4").css("color") == "rgb(255, 199, 0)") {
+        numStars = 4;
+    } else if ($("#3").css("color") == "rgb(255, 199, 0)") {
+        numStars = 3;
+    } else if ($("#2").css("color") == "rgb(255, 199, 0)") {
+        numStars = 2;
+    } else if ($("#1").css("color") == "rgb(255, 199, 0)") { 
+        numStars = 1;
+    } else {
+        numStars = 0;
+    }
 
-function getRating(stars) {
+    return numStars
+}
 
+function returnRating(stars) {
+    // Reset all stars first
+    $("#5, #4, #3, #2, #1").css("color", "");
+    
+    if(stars == 5) {
+        $("#5").css("color", "rgb(255, 199, 0)");
+    } else if (stars == 4) {
+        $("#4").css("color", "rgb(255, 199, 0)");
+    } else if (stars == 3) {
+        $("#3").css("color", "rgb(255, 199, 0)");
+    } else if (stars == 2) {
+        $("#2").css("color", "rgb(255, 199, 0)");
+    } else if (stars == 1) { 
+        $("#1").css("color", "rgb(255, 199, 0)");
+    }
 }
 
 // set the textareas to the book elements instead of default 
-function showBook(book_title) {
-    // $(".title").html(books[book_title]);
-    // $(".author").html(books[book_title]["author"]);
-    // do rating
-
-    // make this show the title, author, etc. if there are any
-    // rating might be difficult...
+function showBook(title) {
+    editing = true;
+    // chrome.storage.sync.get(['books'], function(result) {
+    //     books = result.books;
+    // });
+    // error here accessing all elements
+    $(".title").val(books[title]["title"]);
+    $(".author").val(books[title]["author"]);
+    returnRating(books[title]["rating"]);
 }
 
 // set book in the bookshelf
 function shelveBook(title, shelf) {
-    var rows;
-    if(shelf == "display-to-read") {
-        rows = tr_rows;
-    } else if(shelf == "display-curr-read") {
-        rows = cr_rows;
-    } else {
-        rows = fr_rows;
-    }
-
-    $('.display-' + shelf).append(
-        `<tr id="R${++rows}">
-            <td class="row-index">
-                <div class="book">
-                    <i class="fa fa-book" style="display: inline-block; margin-left: 5px;"></i>
-                    <p style="display: inline-block;">R${title}</p>
-        
-                </div>
-            </td>
-        </tr>`
-    )
+    $(".display-" + shelf + " ul").append(
+        '<li class="book" data-test="book-item" draggable="true"><i class="fa fa-book"></i><span class="book-title"> ' + title + '</span></li>'
+    );
 }
 
 function unshelveBook(title, shelf) {
-    var rows;
-    if(shelf == "display-to-read") {
-        rows = tr_rows;
-    } else if(shelf == "display-curr-read") {
-        rows = cr_rows;
-    } else {
-        rows = fr_rows;
-    }
-
-    var child = $(this).closest('tr').nextAll();
-    child.each(function() {
-        var id = $(this.attr('id'));
-        var dig = parseInt(id.substring(1));
-        $(this).attr('id', `R${dig-1}`);
-    });
-
-    $(this).closest('tr').remove();
-    // FIX LATER!!
+    $("span:contains(" + title + ")").closest('li').remove();
 }
