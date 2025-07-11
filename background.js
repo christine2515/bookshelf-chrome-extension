@@ -543,16 +543,21 @@ function returnRating(stars) {
     // Reset all stars first
     $("#5, #4, #3, #2, #1").css("color", "");
     
-    if(stars == 5) {
-        $("#5").css("color", "rgb(255, 199, 0)");
-    } else if (stars == 4) {
-        $("#4").css("color", "rgb(255, 199, 0)");
-    } else if (stars == 3) {
-        $("#3").css("color", "rgb(255, 199, 0)");
-    } else if (stars == 2) {
-        $("#2").css("color", "rgb(255, 199, 0)");
-    } else if (stars == 1) { 
+    // Set color for all stars up to the rating
+    if(stars >= 1) {
         $("#1").css("color", "rgb(255, 199, 0)");
+    }
+    if(stars >= 2) {
+        $("#2").css("color", "rgb(255, 199, 0)");
+    }
+    if(stars >= 3) {
+        $("#3").css("color", "rgb(255, 199, 0)");
+    }
+    if(stars >= 4) {
+        $("#4").css("color", "rgb(255, 199, 0)");
+    }
+    if(stars >= 5) {
+        $("#5").css("color", "rgb(255, 199, 0)");
     }
 }
 
