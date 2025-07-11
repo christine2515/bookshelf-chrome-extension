@@ -170,6 +170,25 @@ ul {
     /* display: inline-block; */
 }
 
+.goal-display {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.num-books {
+    color: var(--beige);
+    font-family: 'Special Elite';
+    font-weight: 400;
+}
+
+.goal-separator {
+    color: var(--beige);
+    font-family: 'Special Elite';
+    font-weight: 400;
+}
+
 input {
     width: 40px;
 
@@ -183,6 +202,7 @@ input {
 .goal-input {
     display: inline-block;
     color: var(--beige);
+    width: 50px;
 }
 
 
@@ -217,6 +237,7 @@ input {
     position: absolute;
     float: left;
     margin-top: 3px;
+    margin-bottom: 5px;
     /* bottom: 35px;
     left: 10px; */
 }
@@ -250,7 +271,10 @@ input {
 } 
 
 .done-buttons {
-    margin-top: 20px;
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
 .done {
@@ -260,16 +284,25 @@ input {
     font-weight: 400;
     border: none;
     border-radius: 2px;
-    padding: 3px;
+    padding: 8px 12px;
     display: inline-block;
     width: auto;
     cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.done:hover {
+    background-color: var(--teal);
 }
 
 .delete {
     color: var(--brown);
     display: inline-block;
     cursor: pointer;
-    margin-top: 5px;
+    transition: color 0.2s ease;
+}
+
+.delete:hover {
+    color: var(--red);
 }
 

@@ -21,7 +21,7 @@ function start() {
     var fin_read = [];
 
     // Load saved books from storage
-    chrome.storage.sync.get(["tr", "cr", "fr"], function(result) {
+    chrome.storage.sync.get(["tr", "cr", "fr", "goal"], function(result) {
         if (result.tr) {
             to_read = result.tr;
             for (let i = 0; i < to_read.length; i++) {
@@ -40,6 +40,15 @@ function start() {
                 shelveBook(fin_read[i]["title"], "fin-read");
             }
         }
+        
+        // Load and display goal
+        if (result.goal) {
+            goal = result.goal;
+            $(".goal-input").val(goal);
+        }
+        
+        // Update book count display
+        updateBookCount();
     });
 
     $(".show-book").hide();
@@ -108,14 +117,21 @@ function start() {
         $(".show-book").show();
     });
 
+    // goal input change
+    $(".goal-input").on('input', function() {
+        goal = $(this).val();
+        chrome.storage.sync.set({ goal: goal }, function() {
+            console.log("Goal updated: " + goal);
+        });
+    });
+
     // _________ HOVER _________
 
     // hover over book
     $(document).on('mouseover', ".book", function() {
         if(addBook == false) {
-            title = $(".book-title");
-            showBook(title);
-            $(".show-book").show();
+            // Don't show book details on hover for now
+            // This was causing errors with the undefined books variable
         }
     });
 
@@ -157,21 +173,48 @@ function start() {
             return $(this).find('.book-title').text().trim() === bookTitle;
         });
         
-        if (draggedElement.length === 0) return;
+        if (draggedElement.length === 0) {
+            console.log('Dragged element not found');
+            return;
+        }
         
         var targetShelf = getShelfFromElement($(this));
-        var sourceShelf = getShelfFromElement(draggedElement.parent());
+        var sourceShelf = getShelfFromElement(draggedElement.closest('.display-to-read, .display-curr-read, .display-fin-read'));
         
-        if (targetShelf !== sourceShelf) {
+        console.log('Drop event - Book: ' + bookTitle + ', From: ' + sourceShelf + ', To: ' + targetShelf);
+        
+        if (targetShelf !== sourceShelf && sourceShelf !== null) {
             // Move the book element
             $(this).find('ul').append(draggedElement);
             
             // Update storage
             moveBookInStorage(bookTitle, sourceShelf, targetShelf);
+            
+            // Update book count when moving to/from finished reading
+            if (targetShelf === 'fin-read' || sourceShelf === 'fin-read') {
+                updateBookCount();
+            }
+        } else {
+            console.log('Same shelf or invalid source, no move needed');
         }
     });
 
     // _________ FUNCTIONS _________
+
+    function updateBookCount() {
+        chrome.storage.sync.get(["fr"], function(result) {
+            var fin_read = result.fr || [];
+            var finishedCount = fin_read.length;
+            
+            $(".num-books").text(finishedCount);
+            
+            // Update goal display if goal is set
+            if (goal && goal > 0) {
+                var percentage = Math.round((finishedCount / goal) * 100);
+                console.log("Reading progress: " + finishedCount + "/" + goal + " (" + percentage + "%)");
+            }
+        });
+    }
 
     function loadBookForEditing(bookTitle) {
         chrome.storage.sync.get(["tr", "cr", "fr"], function(result) {
@@ -276,6 +319,7 @@ function start() {
             var fin_read = result.fr || [];
             
             var deleted = false;
+            var wasInFinished = false;
             
             // Remove from to-read shelf
             for (var i = 0; i < to_read.length; i++) {
@@ -303,6 +347,7 @@ function start() {
                     if (fin_read[i].title === bookTitle) {
                         fin_read.splice(i, 1);
                         deleted = true;
+                        wasInFinished = true;
                         break;
                     }
                 }
@@ -321,6 +366,11 @@ function start() {
                     fr: fin_read
                 }, function() {
                     console.log('Book deleted: ' + bookTitle);
+                    
+                    // Update book count if deleted from finished reading
+                    if (wasInFinished) {
+                        updateBookCount();
+                    }
                 });
             }
         });
@@ -333,11 +383,11 @@ function start() {
     }
 
     function getShelfFromElement(element) {
-        if (element.hasClass('display-to-read') || element.find('.display-to-read').length > 0) {
+        if (element.hasClass('display-to-read')) {
             return 'to-read';
-        } else if (element.hasClass('display-curr-read') || element.find('.display-curr-read').length > 0) {
+        } else if (element.hasClass('display-curr-read')) {
             return 'curr-read';
-        } else if (element.hasClass('display-fin-read') || element.find('.display-fin-read').length > 0) {
+        } else if (element.hasClass('display-fin-read')) {
             return 'fin-read';
         }
         return null;
@@ -350,37 +400,40 @@ function start() {
             var fin_read = result.fr || [];
             
             var book = null;
-            var sourceArray = null;
-            var targetArray = null;
             
-            // Find the book in the source array
+            // Find and remove book from source array
             if (fromShelf === 'to-read') {
-                sourceArray = to_read;
+                for (var i = 0; i < to_read.length; i++) {
+                    if (to_read[i].title === bookTitle) {
+                        book = to_read.splice(i, 1)[0];
+                        break;
+                    }
+                }
             } else if (fromShelf === 'curr-read') {
-                sourceArray = curr_read;
+                for (var i = 0; i < curr_read.length; i++) {
+                    if (curr_read[i].title === bookTitle) {
+                        book = curr_read.splice(i, 1)[0];
+                        break;
+                    }
+                }
             } else if (fromShelf === 'fin-read') {
-                sourceArray = fin_read;
-            }
-            
-            // Find and remove book from source
-            for (var i = 0; i < sourceArray.length; i++) {
-                if (sourceArray[i].title === bookTitle) {
-                    book = sourceArray.splice(i, 1)[0];
-                    break;
+                for (var i = 0; i < fin_read.length; i++) {
+                    if (fin_read[i].title === bookTitle) {
+                        book = fin_read.splice(i, 1)[0];
+                        break;
+                    }
                 }
             }
             
             if (book) {
                 // Add to target array
                 if (toShelf === 'to-read') {
-                    targetArray = to_read;
+                    to_read.push(book);
                 } else if (toShelf === 'curr-read') {
-                    targetArray = curr_read;
+                    curr_read.push(book);
                 } else if (toShelf === 'fin-read') {
-                    targetArray = fin_read;
+                    fin_read.push(book);
                 }
-                
-                targetArray.push(book);
                 
                 // Update storage
                 chrome.storage.sync.set({
@@ -389,7 +442,10 @@ function start() {
                     fr: fin_read
                 }, function() {
                     console.log('Book moved from ' + fromShelf + ' to ' + toShelf);
+                    console.log('Storage updated - to_read: ' + to_read.length + ', curr_read: ' + curr_read.length + ', fin_read: ' + fin_read.length);
                 });
+            } else {
+                console.log('Book not found: ' + bookTitle);
             }
         });
     }
@@ -402,6 +458,7 @@ function start() {
  * to-read: [list of to-read books]
  * curr-read: [list of books reading]
  * fin-read: [list of read books]
+ * goal: number
  * 
  * book: {
  *  title: "sea of tranquility"
@@ -492,16 +549,17 @@ function returnRating(stars) {
 }
 
 // set the textareas to the book elements instead of default 
-function showBook(title) {
-    editing = true;
-    // chrome.storage.sync.get(['books'], function(result) {
-    //     books = result.books;
-    // });
-    // error here accessing all elements
-    $(".title").val(books[title]["title"]);
-    $(".author").val(books[title]["author"]);
-    returnRating(books[title]["rating"]);
-}
+// This function is not used in the current implementation
+// function showBook(title) {
+//     editing = true;
+//     // chrome.storage.sync.get(['books'], function(result) {
+//     //     books = result.books;
+//     // });
+//     // error here accessing all elements
+//     $(".title").val(books[title]["title"]);
+//     $(".author").val(books[title]["author"]);
+//     returnRating(books[title]["rating"]);
+// }
 
 // set book in the bookshelf
 function shelveBook(title, shelf) {
